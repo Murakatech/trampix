@@ -1,0 +1,51 @@
+# Configuração do Docker Compose para a plataforma Trampix.
+# Este arquivo define e orquestra os serviços (containers) necessários para o ambiente de desenvolvimento com Laravel.
+
+version: '3.8'
+
+services:
+  # Serviço da aplicação PHP com Apache
+  app:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    ports:
+      - "80:80" # Mapeia a porta 80 do host para a porta 80 do container (acesso via http://localhost)
+    volumes:
+      - .:/var/www/html # Monta a pasta raiz do projeto no /var/www/html do container
+      - ./docker/php/000-default.conf:/etc/apache2/sites-available/000-default.conf
+    depends_on:
+      db:
+        condition: service_healthy # Garante que o banco de dados esteja saudável antes do app iniciar
+    environment:
+      # Variáveis de ambiente para o Laravel (lidas do .env)
+      DB_CONNECTION: mysql
+      DB_HOST: db # 'db' é o nome do serviço MySQL no docker-compose.yml
+      DB_PORT: 3306
+      DB_DATABASE: trampix_db # Nome do banco de dados
+      DB_USERNAME: user
+      DB_PASSWORD: aluno # Sua senha definida
+      APP_ENV: local
+      APP_DEBUG: true
+
+  # Serviço do banco de dados MySQL
+  db:
+    image: mysql:8.0 # Usa a imagem oficial do MySQL
+    ports:
+      - "3306:3306" # Mapeia a porta 3306 do host para o container
+    volumes:
+      - db_data:/var/lib/mysql # Volume persistente para os dados do banco
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql # Script de inicialização do DB
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: trampix_db # Nome do banco de dados
+      MYSQL_USER: user
+      MYSQL_PASSWORD: aluno # Sua senha definida
+    healthcheck: # Adiciona um healthcheck para o Docker saber quando o MySQL está pronto
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_password"]
+      interval: 5s
+      timeout: 20s
+      retries: 10
+
+volumes:
+  db_data: # Define o volume nomeado para os dados do MySQL

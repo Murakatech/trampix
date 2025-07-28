@@ -3,14 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
-use App\Models\User; // Necessário para criar o usuário antes da empresa
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Auth; // Importa o facade Auth
 
 class CompanyController extends Controller
 {
-    // Método para obter todas as empresas (GET /api/companies)
+    // Construtor para aplicar middleware de autenticação e autorização
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum');
+        $this->middleware('can:update,company')->only(['update', 'destroy']);
+        $this->middleware('can:create,App\Models\Company')->only('store');
+    }
+
     public function index()
     {
         $companies = Company::with('user')->get();
@@ -18,12 +25,19 @@ class CompanyController extends Controller
     }
 
     // Método para criar uma nova empresa (POST /api/companies)
+    // O user_id virá do usuário autenticado
     public function store(Request $request)
     {
+        $user = Auth::user(); // Pega o usuário autenticado
+        if ($user->company) {
+            return response()->json(['message' => 'Você já possui um perfil de empresa.'], 409);
+        }
+        if ($user->user_type !== 'Empresa') {
+            return response()->json(['message' => 'Seu tipo de usuário não permite criar um perfil de empresa.'], 403);
+        }
+
         try {
             $request->validate([
-                'email' => 'required|email|unique:users,email',
-                'password' => 'required|min:8',
                 'company_name' => 'required|string|max:255',
                 'cnpj' => 'required|string|max:18|unique:companies,cnpj',
                 'trade_name' => 'nullable|string|max:255',
@@ -33,17 +47,8 @@ class CompanyController extends Controller
                 'location' => 'nullable|string|max:255',
             ]);
 
-            // 1. Criar o usuário na tabela Users
-            $user = User::create([
-                'email' => $request->email,
-                'password_hash' => Hash::make($request->password),
-                'user_type' => 'Empresa',
-                'status' => $request->status ?? 'Pending Approval',
-            ]);
-
-            // 2. Criar o perfil da empresa usando o user_id recém-criado
             $company = Company::create([
-                'user_id' => $user->user_id,
+                'user_id' => $user->user_id, // Usa o ID do usuário autenticado
                 'company_name' => $request->company_name,
                 'trade_name' => $request->trade_name,
                 'sector' => $request->sector,
@@ -54,14 +59,14 @@ class CompanyController extends Controller
             ]);
 
             return response()->json([
-                'message' => 'Empresa criada com sucesso!',
+                'message' => 'Perfil de empresa criado com sucesso!',
                 'company' => $company->load('user')
             ], 201);
 
         } catch (ValidationException $e) {
             return response()->json(['message' => 'Erro de validação', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Erro ao criar empresa: ' . $e->getMessage()], 500);
+            return response()->json(['message' => 'Erro ao criar perfil de empresa: ' . $e->getMessage()], 500);
         }
     }
 
@@ -87,30 +92,27 @@ class CompanyController extends Controller
                 return response()->json(['message' => 'Empresa não encontrada.'], 404);
             }
 
+            // Autorização: O usuário logado deve ser o proprietário do perfil ou um administrador
+            // if (Auth::id() !== $company->user_id && Auth::user()->user_type !== 'Administrador') {
+            //     return response()->json(['message' => 'Você não tem permissão para atualizar este perfil.'], 403);
+            // }
+
             $request->validate([
-                'email' => 'nullable|email|unique:users,email,' . $company->user_id . ',user_id',
-                'password' => 'nullable|min:8',
                 'company_name' => 'nullable|string|max:255',
                 'cnpj' => 'nullable|string|max:18|unique:companies,cnpj,' . $id . ',company_id',
-                // Adicione validação para outros campos
+                'trade_name' => 'nullable|string|max:255',
+                'sector' => 'nullable|string|max:100',
+                'description' => 'nullable|string',
+                'logo_url' => 'nullable|string|max:255',
+                'location' => 'nullable|string|max:255',
             ]);
 
-            // Atualiza os dados do usuário se o email ou password forem fornecidos
-            if ($request->has('email') || $request->has('password')) {
-                $user = $company->user;
-                if ($user) {
-                    $userData = [];
-                    if ($request->has('email')) {
-                        $userData['email'] = $request->email;
-                    }
-                    if ($request->has('password')) {
-                        $userData['password_hash'] = Hash::make($request->password);
-                    }
-                    $user->update($userData);
-                }
+            $companyData = $request->all();
+            // Se o status for atualizado, apenas um admin pode fazer isso
+            if (isset($companyData['status']) && Auth::user()->user_type !== 'Administrador') {
+                unset($companyData['status']); // Remove o campo se não for admin
             }
-            // Atualiza os dados da empresa
-            $companyData = $request->except(['email', 'password']);
+
             $company->update($companyData);
 
             return response()->json(['message' => 'Empresa atualizada com sucesso!', 'company' => $company->load('user')]);
@@ -132,8 +134,12 @@ class CompanyController extends Controller
                 return response()->json(['message' => 'Empresa não encontrada.'], 404);
             }
 
-            // Deleta o usuário associado (e a empresa será deletada em cascata pelo DB)
-            $company->user->delete();
+            // Autorização: O usuário logado deve ser o proprietário do perfil ou um administrador
+            // if (Auth::id() !== $company->user_id && Auth::user()->user_type !== 'Administrador') {
+            //     return response()->json(['message' => 'Você não tem permissão para deletar este perfil.'], 403);
+            // }
+
+            $company->user->delete(); // Deleta o usuário associado (e a empresa em cascata)
 
             return response()->json(null, 204);
 

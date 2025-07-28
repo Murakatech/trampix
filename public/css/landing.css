@@ -1,0 +1,124 @@
+/* public/css/landing.css */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f0f2f5; /* Um cinza claro suave */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar {
+    background-color: #343a40 !important; /* Cor escura para a navbar */
+}
+
+.navbar-brand {
+    color: #ffffff !important;
+    font-weight: bold;
+}
+
+.navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #ffffff !important;
+}
+
+.hero-section {
+    background: linear-gradient(to right, #007bff, #0056b3); /* Gradiente azul */
+    color: white;
+    padding: 80px 0;
+    text-align: center;
+    flex-grow: 1; /* Faz a seção ocupar o espaço restante */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-section h1 {
+    font-size: 3.5rem;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.hero-section p {
+    font-size: 1.25rem;
+    max-width: 800px;
+    margin: 0 auto 30px auto;
+}
+
+.btn-light {
+    color: #007bff;
+    background-color: #ffffff;
+    border-color: #ffffff;
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    border-radius: 50px; /* Botões mais arredondados */
+    transition: all 0.3s ease;
+}
+
+.btn-light:hover {
+    background-color: #e2e6ea;
+    border-color: #e2e6ea;
+    color: #0056b3;
+    transform: translateY(-2px); /* Efeito sutil ao passar o mouse */
+}
+
+.features-section {
+    padding: 60px 0;
+    background-color: #ffffff;
+    text-align: center;
+}
+
+.feature-card {
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.feature-card h3 {
+    color: #007bff;
+    margin-bottom: 15px;
+}
+
+/* Estilos para a nova seção de imagens */
+.image-showcase-section {
+    padding: 60px 0;
+    background-color: #f0f2f5;
+    text-align: center;
+}
+
+.image-showcase-section h2 {
+    color: #343a40;
+    margin-bottom: 40px;
+}
+
+.image-gallery img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.image-gallery img:hover {
+    transform: scale(1.03);
+}
+
+.footer {
+    background-color: #343a40;
+    color: white;
+    padding: 30px 0;
+    text-align: center;
+    margin-top: auto; /* Empurra o footer para baixo */
+}
+
+.footer p {
+    margin-bottom: 0;
+}

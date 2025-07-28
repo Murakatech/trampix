@@ -1,0 +1,52 @@
+/* public/css/company-management.css */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f8f9fa;
+}
+
+.container {
+    margin-top: 30px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.card-header {
+    background-color: #007bff;
+    color: white;
+    padding: 15px 20px;
+    font-weight: bold;
+    border-bottom: none;
+}
+
+.btn-primary, .btn-success, .btn-warning, .btn-danger {
+    border-radius: 5px;
+}
+
+.table-responsive {
+    margin-top: 20px;
+    max-height: 400px; /* Limita a altura da tabela para scroll */
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+}
+
+table {
+    margin-bottom: 0 !important;
+}
+
+th, td {
+    white-space: nowrap;
+}
+
+.form-label {
+    font-weight: 500;
+}

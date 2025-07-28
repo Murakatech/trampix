@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trampix - Gerenciar Empresas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/company-management.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="dashboard.html">Trampix</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Empresas</a>
+                    </li>
+                    <!-- Outros links de navegação aqui -->
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <span class="nav-link text-white" id="userEmailDisplayNav"></span>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-danger btn-sm" id="logoutBtnNav">Sair</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <h1 class="text-center mb-4">Gerenciamento de Empresas</h1>
+
+        <!-- Formulário para Criar/Editar Empresa -->
+        <div class="card mb-5 shadow-sm rounded-lg">
+            <div class="card-header bg-primary text-white rounded-top-lg">
+                <h2 class="card-title mb-0" id="formTitle">Criar Nova Empresa</h2>
+            </div>
+            <div class="card-body">
+                <form id="companyForm">
+                    <input type="hidden" id="companyId">
+                    <input type="hidden" id="userId"> <!-- Para o user_id da empresa existente -->
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email (Usuário da Empresa):</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="password" class="form-label">Senha (Usuário da Empresa):</label>
+                            <input type="password" class="form-control" id="password" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="companyName" class="form-label">Razão Social:</label>
+                            <input type="text" class="form-control" id="companyName" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="tradeName" class="form-label">Nome Fantasia:</label>
+                            <input type="text" class="form-control" id="tradeName">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="cnpj" class="form-label">CNPJ:</label>
+                            <input type="text" class="form-control" id="cnpj" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="sector" class="form-label">Setor:</label>
+                            <input type="text" class="form-control" id="sector">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Descrição:</label>
+                        <textarea class="form-control" id="description" rows="3"></textarea>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="logoUrl" class="form-label">URL do Logo:</label>
+                            <input type="url" class="form-control" id="logoUrl">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="location" class="form-label">Localização:</label>
+                            <input type="text" class="form-control" id="location">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 mt-3 rounded-pill" id="submitBtn">Criar Empresa</button>
+                    <button type="button" class="btn btn-secondary w-100 mt-2 rounded-pill" id="cancelEditBtn" style="display: none;">Cancelar Edição</button>
+                </form>
+                <div id="formMessage" class="mt-3"></div>
+            </div>
+        </div>
+
+        <!-- Seção para Listar Empresas -->
+        <div class="card shadow-sm rounded-lg">
+            <div class="card-header bg-info text-white rounded-top-lg">
+                <h3 class="card-title mb-0">Lista de Empresas</h3>
+            </div>
+            <div class="card-body">
+                <button id="refreshCompaniesBtn" class="btn btn-outline-primary mb-3">Atualizar Lista</button>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID Empresa</th>
+                                <th>Email Usuário</th>
+                                <th>Razão Social</th>
+                                <th>CNPJ</th>
+                                <th>Setor</th>
+                                <th>Localização</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="companiesTableBody">
+                            <!-- Empresas serão carregadas aqui pelo JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="listMessage" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eGYQ7N6kfm4+zQ" crossorigin="anonymous"></script>
+    <script src="js/company-management.js"></script>
+</body>
+</html>

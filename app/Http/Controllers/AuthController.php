@@ -4,23 +4,38 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash; // Para hash de senha
-use Illuminate\Validation\ValidationException; // Para tratar erros de validação
-use Illuminate\Auth\AuthenticationException; // Para erros de autenticação
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException; // Importar esta classe
+use Illuminate\Auth\AuthenticationException;
 
 class AuthController extends Controller
 {
-    // Método para registrar um novo usuário (POST /api/register)
     public function register(Request $request)
     {
         try {
-            $request->validate([
+            $rules = [
                 'email' => 'required|email|unique:users,email',
-                'password' => 'required|min:8|confirmed', // 'confirmed' exige password_confirmation
+                'password' => 'required|min:8|confirmed',
                 'user_type' => 'required|in:Freelancer,Empresa,Administrador',
                 'status' => 'in:Active,Pending Approval,Blocked',
-            ]);
+            ];
 
+            $messages = [
+                'email.unique' => 'Este endereço de e-mail já está cadastrado. Por favor, use outro.',
+                'email.required' => 'O campo e-mail é obrigatório.',
+                'email.email' => 'O campo e-mail deve ser um endereço de e-mail válido.',
+                'password.required' => 'O campo senha é obrigatório.',
+                'password.min' => 'A senha deve ter no mínimo :min caracteres.',
+                'password.confirmed' => 'A confirmação de senha não corresponde.',
+                'user_type.required' => 'O tipo de usuário é obrigatório.',
+                'user_type.in' => 'O tipo de usuário selecionado é inválido.',
+            ];
+
+            // O Laravel lança ValidationException automaticamente se a validação falhar.
+            // Para APIs, ele já converte para 422 JSON por padrão.
+            $request->validate($rules, $messages); // <-- A validação ocorre aqui
+
+            // Se a validação passar, o código continua aqui
             $user = User::create([
                 'email' => $request->email,
                 'password_hash' => Hash::make($request->password),
@@ -28,8 +43,6 @@ class AuthController extends Controller
                 'status' => $request->status ?? 'Pending Approval',
             ]);
 
-            // Gera um token de acesso pessoal para o usuário recém-registrado
-            // 'auth_token' é o nome do token, pode ser qualquer string
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
@@ -37,35 +50,38 @@ class AuthController extends Controller
                 'user' => $user,
                 'access_token' => $token,
                 'token_type' => 'Bearer',
-            ], 201); // 201 Created
+            ], 201);
 
-        } catch (ValidationException $e) {
-            return response()->json(['message' => 'Erro de validação', 'errors' => $e->errors()], 422);
+        } catch (ValidationException $e) { // <-- CAPTURA A EXCEÇÃO DE VALIDAÇÃO
+            // O Laravel já retorna 422 por padrão para ValidationException em APIs.
+            // Apenas retornamos a resposta para garantir que o fluxo pare aqui.
+            return response()->json(['message' => 'Erro de validação', 'errors' => $e->errors()], 422); // <-- GARANTA O STATUS 422 AQUI
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Erro ao registrar usuário: ' . $e->getMessage()], 500);
+            return response()->json(['message' => 'Erro interno do servidor: ' . $e->getMessage()], 500);
         }
     }
 
-    // Método para login de usuário (POST /api/login)
+    // ... (método login e outros) ...
+
     public function login(Request $request)
     {
         try {
             $request->validate([
                 'email' => 'required|email',
                 'password' => 'required',
+            ], [
+                'email.required' => 'O campo e-mail é obrigatório para o login.',
+                'email.email' => 'O campo e-mail deve ser um endereço de e-mail válido.',
+                'password.required' => 'O campo senha é obrigatório para o login.',
             ]);
 
             $user = User::where('email', $request->email)->first();
 
-            // Verifica se o usuário existe e se a senha está correta
             if (!$user || !Hash::check($request->password, $user->password_hash)) {
-                throw new AuthenticationException('Credenciais inválidas.');
+                throw new AuthenticationException('Email ou senha inválidos.');
             }
 
-            // Revoga tokens antigos para este usuário (opcional, para segurança)
             $user->tokens()->delete();
-
-            // Gera um novo token de acesso pessoal
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
@@ -76,27 +92,11 @@ class AuthController extends Controller
             ]);
 
         } catch (ValidationException $e) {
-            return response()->json(['message' => 'Erro de validação', 'errors' => $e->errors()], 422);
+            return response()->json(['message' => 'Erro de validação', 'errors' => $e->errors()], 422); // <-- GARANTA O STATUS 422 AQUI
         } catch (AuthenticationException $e) {
-            return response()->json(['message' => $e->getMessage()], 401); // 401 Unauthorized
+            return response()->json(['message' => $e->getMessage()], 401);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Erro ao realizar login: ' . $e->getMessage()], 500);
         }
-    }
-
-    // Método para logout de usuário (POST /api/logout)
-    public function logout(Request $request)
-    {
-        // Deleta o token atual usado para a requisição
-        $request->user()->currentAccessToken()->delete();
-
-        return response()->json(['message' => 'Logout realizado com sucesso!']);
-    }
-
-    // Método para obter o usuário autenticado (GET /api/user - protegido)
-    public function user(Request $request)
-    {
-        // Retorna o usuário autenticado
-        return response()->json($request->user());
     }
 }

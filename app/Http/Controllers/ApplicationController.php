@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Application;
-use App\Models\Freelancer; // Para validação
-use App\Models\JobVacancy; // Para validação
+use App\Models\Freelancer; 
+use App\Models\JobVacancy; 
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -12,7 +12,7 @@ class ApplicationController extends Controller
 {
     public function index()
     {
-        // Carrega candidaturas com os dados do freelancer e da vaga
+
         $applications = Application::with(['freelancer.user', 'jobVacancy.company.user'])->get();
         return response()->json($applications);
     }
@@ -26,7 +26,7 @@ class ApplicationController extends Controller
                 'application_status' => 'in:Pending,Reviewed,Interview,Hired,Rejected',
             ]);
 
-            // Verifica se já existe uma candidatura única (freelancer_id, vacancy_id)
+
             $existingApplication = Application::where('freelancer_id', $request->freelancer_id)
                                                 ->where('vacancy_id', $request->vacancy_id)
                                                 ->first();
@@ -72,14 +72,14 @@ class ApplicationController extends Controller
                 'application_status' => 'nullable|in:Pending,Reviewed,Interview,Hired,Rejected',
             ]);
 
-            // Validação para UNIQUE constraint ao atualizar (se freelancer_id ou vacancy_id mudarem)
+
             if ($request->has('freelancer_id') || $request->has('vacancy_id')) {
                 $checkFreelancerId = $request->freelancer_id ?? $application->freelancer_id;
                 $checkVacancyId = $request->vacancy_id ?? $application->vacancy_id;
 
                 $existingApplication = Application::where('freelancer_id', $checkFreelancerId)
                                                 ->where('vacancy_id', $checkVacancyId)
-                                                ->where('application_id', '!=', $id) // Exclui a própria candidatura
+                                                ->where('application_id', '!=', $id) 
                                                 ->first();
                 if ($existingApplication) {
                     return response()->json(['message' => 'Nova combinação de freelancer e vaga já existe em outra candidatura.'], 409);
